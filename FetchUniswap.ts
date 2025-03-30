@@ -2,16 +2,11 @@ import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
 import fetch from 'node-fetch';
 
-
-// 🔹 Uniswap V2 & V3 工厂合约地址
-const UNISWAP_V2_FACTORY = "0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6";
-const UNISWAP_V3_FACTORY = "0xdB1d10011AD0Ff90774D0C6Bb92e5C5c8b4461F7";
-
-// 🔹 PairCreated & PoolCreated 事件的 keccak 哈希
+// PairCreated & PoolCreated 事件的 keccak 哈希
 const PAIR_CREATED_TOPIC = "0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9";
 const POOL_CREATED_TOPIC = "0x783cca1c0412dd0d695e784568c96da2e9c22ff989357a2e8b1d9b2b4e6b7118";
 
-// 🔹 轮询多个 RPC 以加速查询
+// 轮询多个 RPC 以加速查询
 let RPC_URLS = [
         "https://binance.llamarpc.com",
         "https://bsc-dataseed.bnbchain.org",
@@ -131,7 +126,6 @@ class UniswapFetcher {
 
         for (const log of logs) {
             const eventTopic = log.topics[0];
-            console.log(log.topics[0]);
             const poolType = eventTopic === PAIR_CREATED_TOPIC ? "V2" : 
                            eventTopic === POOL_CREATED_TOPIC ? "V3" : null;
 
@@ -144,12 +138,6 @@ class UniswapFetcher {
                 const token0 = Buffer.from(log.topics[1].slice(-40), 'hex');
                 const token1 = Buffer.from(log.topics[2].slice(-40), 'hex');
                 const address = Buffer.from(log.data.slice(26, 66), 'hex');
-
-                console.log(`Token0: 0x${token0.toString('hex')}`);
-                console.log(`Token1: 0x${token1.toString('hex')}`);
-                console.log(`Pool Address: 0x${address.toString('hex')}`);
-                console.log(`Type: ${poolType}`);
-                console.log("-".repeat(50));
 
                 await this.db.run(
                     `INSERT INTO uniswap_pools (token0, token1, type, address) VALUES (?, ?, ?, ?)`,
